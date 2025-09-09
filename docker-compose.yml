@@ -1,4 +1,14 @@
 services:
+  certbot-init:
+    image: ${REGISTRY_HOST}:${REGISTRY_PORT}/certbot/certbot:latest
+    container_name: certbot-init
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./letsencrypt:/etc/letsencrypt
+      - ./libletsencrypt:/var/lib/letsencrypt
+    entrypoint: "/bin/sh -c 'certbot certonly --standalone --preferred-challenges http --agree-tos --no-eff-email --email ${EMAIL} -d ${DOMAIN}'"
+    depends_on:
+      - graphql-engine
   #postgres:
   #  image: postgres:15
   #  restart: always
@@ -7,9 +17,9 @@ services:
   #  environment:
   #    POSTGRES_PASSWORD: ${DB_PWD}
   graphql-engine:
-    image: ${REGISTRY_HOST}/hasura/graphql-engine:latest
+    image: ${REGISTRY_HOST}:${REGISTRY_PORT}/hasura/graphql-engine:latest
     ports:
-      - "8080:8080"
+      - "443:8080"
     restart: always
     environment:
       ## postgres database to store Hasura metadata
@@ -34,6 +44,11 @@ services:
     depends_on:
       data-connector-agent:
         condition: service_healthy
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+    command: >
+      graphql-engine serve       --server-port 8080       --tls-cert /etc/letsencrypt/live/${DOMAIN}/fullchain.pem       --tls-key /etc/letsencrypt/live/${DOMAIN}/privkey.pem
+
   data-connector-agent:
     image: ${REGISTRY_HOST}/hasura/graphql-data-connector:latest
     restart: always
@@ -50,5 +65,15 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
-#volumes:
-  #db_data:
+#自動更新
+  certbot-renew:
+    image: ${REGISTRY_HOST}:${REGISTRY_PORT}/certbot/certbot:latest
+    container_name: certbot-renew
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./libletsencrypt:/var/lib/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  letsencrypt:
+  libletsencrypt:
