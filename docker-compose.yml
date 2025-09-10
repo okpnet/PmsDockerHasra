@@ -35,7 +35,7 @@ services:
       data-connector-agent:
         condition: service_healthy
     volumes:
-      - ./letsencrypt:/etc/letsencrypt
+      - /opt/letsencrypt:/etc/letsencrypt
     command: >
       graphql-engine serve
         --server-port 8080
@@ -43,7 +43,7 @@ services:
         --tls-key /etc/letsencrypt/live/${DOMAIN}/privkey.pem
 
   data-connector-agent:
-    image: ${REGISTRY_HOST}/hasura/graphql-data-connector:latest
+    image: ${REGISTRY_HOST}:${REGISTRY_PORT}/hasura/graphql-data-connector:latest
     restart: always
     ports:
       - 8081:8081
@@ -58,3 +58,18 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5s
+
+  webhookd:
+    image: ${REGISTRY_HOST}:${REGISTRY_PORT}/ncarlier/webhookd:latest
+    restart: always
+    ports:
+      - "8443:8443"  # HTTPS用ポートに変更
+    environment:
+      WEBHOOKD_PORT: 8443
+      WEBHOOKD_LOG_LEVEL: info
+      WHD_TLS_ENABLED: "true"
+      WHD_TLS_CERT_FILE: /app/certs/live/${DOMAIN}/fullchain.pem
+      WHD_TLS_KEY_FILE: /app/certs/live/${DOMAIN}/privkey.pem
+    volumes:
+      - /opt/webhookd/config:/app/config  # 設定ファイル（必要に応じて）
+      - /opt/letsencrypt:/app/certs:ro  # TLS証明書と鍵を格納
