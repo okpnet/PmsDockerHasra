@@ -37,7 +37,7 @@ services:
     extra_hosts:
       - "${KEYCLOAK_SERVER_HOST}:${KEYCLOAK_SERVER_IP}" #Keycloak のホスト名とIPアドレスのマッピング
     volumes:
-      - /opt/keycloak/certs.d/${KEYCLOAK_SERVER_HOST}:8443:/etc/ssl/certs # JWT 検証用のCA証明書
+      - /opt/keycloak/certs.d/${KEYCLOAK_SERVER_HOST}:/etc/ssl/certs # JWT 検証用のCA証明書
     command:
       graphql-engine serve
         --server-port 8080

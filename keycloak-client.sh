@@ -56,7 +56,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # 証明書ディレクトリ作成とコピー
-CERT_DIR="/opt/keycloak/certs.d/${KEYCLOAK_HOST}:8443"
+CERT_DIR="/opt/keycloak/certs.d/${KEYCLOAK_HOST}"
 echo "📁 証明書ディレクトリ: ${CERT_DIR} を作成します..."
 sudo mkdir -p "${CERT_DIR}"
 
