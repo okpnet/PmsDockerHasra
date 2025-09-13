@@ -35,11 +35,10 @@ services:
       data-connector-agent:
         condition: service_healthy
     extra_hosts:
-      - "${KEYCLOAK_SERVER_HOST}:${KEYCLOAK_SERVER_IP}"
+      - "${KEYCLOAK_SERVER_HOST}:${KEYCLOAK_SERVER_IP}" #Keycloak のホスト名とIPアドレスのマッピング
     volumes:
-      - /opt/keycloak/:/etc/ssl/certs/my-ca.pem
-
-    command: >
+      - /opt/keycloak/certs.d/${KEYCLOAK_SERVER_HOST}:8443:/etc/ssl/certs # JWT 検証用のCA証明書
+    command:
       graphql-engine serve
         --server-port 8080
 
